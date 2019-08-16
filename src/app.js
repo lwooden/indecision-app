@@ -8,13 +8,13 @@ console.log("App.js is running!")
 // browser doesn't know what to do with this; we have to compile it down to a language it can understand
 // Babel will do this for us! JSX -> ES5 Javascript
 
-var app = {
+const app = {
     title: 'The Indecision App',
     subTitle: 'Put your life in the hands of a computer!',
     options: ['One', 'Two']
 }
 
-var template = (
+const template = (
     <div> 
       <h1>{app.title}</h1>
       {app.subTitle && <p>{app.subTitle}</p>}
@@ -28,12 +28,12 @@ var template = (
 
 
 // Referencing simple variables
-var userName = "Low";
-var userAge = 29;
-var userLocation = 'Maryland'
+const userName = "Low";
+const userAge = 29;
+const userLocation = 'Maryland'
 
 // Referencing an object
-var user = {
+const user = {
     name: "Lowell",
     age: 19,
     location: 'Maryland'
@@ -53,7 +53,7 @@ function getLocation(location) {
 // If an expression resolves to "undefined" nothing will be rendered in HTML
 // Ternary operator is more precise and it is defined as a statement not an expression so we can call it inline
 
-var template2 = (
+const template2 = (
     <div>
       <h1>{user.name ? user.name : 'Anonymous'}</h1>
       {(user.age && user.age >= 18) && <p>Age: {user.age}</p>}
@@ -61,6 +61,6 @@ var template2 = (
     </div>
 );
 
-var appRoot = document.getElementById("app");
+const appRoot = document.getElementById("app");
 
 ReactDOM.render(template, appRoot)
