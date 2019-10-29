@@ -1,112 +1,426 @@
-'use strict';
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+"use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+// Function Context Example
+// We lose the "this" binding in Event Handlers
 
-var Person = function () {
-    function Person() {
-        var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'Anonymous';
-        var age = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+// Proper Context
+var obj = {
+  "name": "Lowell",
+  getName: function getName() {
+    return this.name;
+  }
+};
 
-        _classCallCheck(this, Person);
+console.log(obj.getName());
 
-        this.name = name;
-        this.age = age;
+// Improper Context - "this" binding is broken
+var getName = obj.getName.bind(obj); // sets the context back to obj object
+console.log(getName());
+
+/* ------------------------------------------------------ */
+
+// Parent/Top Level Component
+
+var IndecisionApp = function (_React$Component) {
+  _inherits(IndecisionApp, _React$Component);
+
+  function IndecisionApp(props) {
+    _classCallCheck(this, IndecisionApp);
+
+    var _this = _possibleConstructorReturn(this, (IndecisionApp.__proto__ || Object.getPrototypeOf(IndecisionApp)).call(this, props));
+
+    _this.parentClearList = _this.parentClearList.bind(_this);
+    _this.handleDeleteOption = _this.handleDeleteOption.bind(_this);
+    _this.parentHandlePick = _this.parentHandlePick.bind(_this);
+    _this.handleAddOptions = _this.handleAddOptions.bind(_this);
+
+    // data whose state we want to track/control
+    _this.state = {
+      options: props.options
+    };
+    return _this;
+  }
+
+  _createClass(IndecisionApp, [{
+    key: "render",
+    value: function render() {
+
+      // data to pass into child components
+      // this is one-way communication: top level component -> child components
+      var title = 'Indecision App';
+      var subtitle = 'Let the computer decide for you!';
+      //const options = ['One', 'Two', 'Three']
+
+      return (
+        // Child/Nested Components
+        React.createElement(
+          "div",
+          null,
+          React.createElement(Header, { title: title, subtitle: subtitle }),
+          React.createElement(Action, {
+            hasOptions: this.state.options.length > 0 // disable button if no options 
+            , parentHandlePick: this.parentHandlePick
+          }),
+          React.createElement(Options, {
+            options: this.state.options,
+            parentClearList: this.parentClearList // passing the method as a prop so child component can access it
+            , handleDeleteOption: this.handleDeleteOption
+          }),
+          React.createElement(AddOption, {
+            handleAddOptions: this.handleAddOptions
+          }),
+          React.createElement(User, { name: "Lowell", age: "29" })
+        )
+      );
     }
 
-    _createClass(Person, [{
-        key: 'getGreeting',
-        value: function getGreeting() {
-            return 'Hello my name is ' + this.name + '!';
-        }
-    }, {
-        key: 'getDescription',
-        value: function getDescription() {
-            return 'Hello my name is ' + this.name + ' and I am ' + this.age + ' years old!';
-        }
-    }]);
+    // --- Lifecycle Methods ---
 
-    return Person;
-}();
+  }, {
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      console.log('componentDidMount()');
+      // Fetch Data
+    }
+  }, {
+    key: "componentDidUpdate",
+    value: function componentDidUpdate() {
+      console.log('componentDidUpdates()');
+      // Save Data
+    }
+  }, {
+    key: "componentWillUnmount",
+    value: function componentWillUnmount() {
+      console.log('componentWillUnmount()');
+    }
+    // --- Lifecycle Methods ---
 
-var Student = function (_Person) {
-    _inherits(Student, _Person);
+  }, {
+    key: "parentClearList",
+    value: function parentClearList() {
+      console.log('parentClearList()');
+      // this.setState(() => ({ options: [] })) // shorthand syntax; implicit return of an object
+      this.setState(function () {
+        return {
+          options: []
+        };
+      });
+    }
+  }, {
+    key: "handleDeleteOption",
+    value: function handleDeleteOption(optionToRemove) {
+      // console.log('Calling handleDeleteOption()', option)
+      this.setState(function (prevState) {
+        return {
+          options: prevState.options.filter(function (option) {
+            return optionToRemove !== option;
+          })
+        };
+      });
+    }
+  }, {
+    key: "parentHandlePick",
+    value: function parentHandlePick() {
+      console.log('Calling parentHandlePick()');
+      var randomNum = Math.floor(Math.random() * this.state.options.length); // choose a random number 
+      var option = this.state.options[randomNum];
+      alert(option); // invoke alert action in the browser
+    }
+  }, {
+    key: "handleAddOptions",
+    value: function handleAddOptions(option) {
+      //console.log(option)
+      if (!option) {
+        // if empty string
+        return "Enter a valid value!";
+      } else if (this.state.options.indexOf(option) > -1) {
+        // if value exists
+        return "This option already exists!";
+      }
 
-    function Student(name, age, major) {
-        _classCallCheck(this, Student);
+      this.setState(function (prevState) {
+        return {
+          options: prevState.options.concat([option])
+        };
+      });
+    }
+  }]);
 
-        // call superclass constructor for name and age property
-        var _this = _possibleConstructorReturn(this, (Student.__proto__ || Object.getPrototypeOf(Student)).call(this, name, age));
+  return IndecisionApp;
+}(React.Component);
 
-        _this.major = major;
-        return _this;
+IndecisionApp.defaultProps = {
+  options: []
+
+  // Header - Stateless Function Based Component
+};var Header = function Header(props) {
+  return (
+    // JSX To Render
+    React.createElement(
+      "div",
+      null,
+      React.createElement(
+        "h1",
+        null,
+        props.title
+      ),
+      props.subtitle && React.createElement(
+        "h2",
+        null,
+        props.subtitle
+      ),
+      " "
+    )
+  );
+};
+
+Header.defaultProps = {
+  title: 'Indecision App'
+
+  // React Component => ES6 Class
+  // Convert ES6 Class into a React Component By Extending It
+
+  // Header - Class Based Component
+  // class Header extends React.Component {
+  // Must always define the render() method
+  //   render() {
+  //     return (
+  //       // JSX To Render
+  //       <div>
+  //         <h1>{this.props.title}</h1>
+  //         <h2>{this.props.subtitle}</h2>
+  //       </div>
+  //     )
+  //   }
+  // }
+
+  // Action - Stateless Function Based Component
+};var Action = function Action(props) {
+  return React.createElement(
+    "div",
+    null,
+    React.createElement(
+      "button",
+      {
+        onClick: props.parentHandlePick,
+        disabled: !props.hasOptions
+      },
+      "What Should I Do?"
+    )
+  );
+};
+
+// Action - Class Based Component
+// class Action extends React.Component {
+//   render() {
+//     return (
+//       <div>
+//         <button 
+//         // onClick={this.handlePick}
+//         onClick={this.props.parentHandlePick}
+//         disabled={!this.props.hasOptions}
+//         >
+//         What Should I Do?</button>
+//       </div>
+//     )
+//   }
+
+// Event Handler
+// handlePick() {
+//   alert('handlePick()')
+// }
+// }
+
+// Options  - Stateless Function Based Component
+var Options = function Options(props) {
+  return React.createElement(
+    "div",
+    null,
+    React.createElement(
+      "button",
+      { onClick: props.parentClearList },
+      "Clear List"
+    ),
+    " ",
+    props.options.map(function (option) {
+      return React.createElement(Option, { key: option, optionText: option, handleDeleteOption: props.handleDeleteOption });
+    })
+  );
+};
+
+// Options  - Class Based Component
+// class Options extends React.Component {
+//   constructor(props) {
+//     super(props)
+
+// Calling "bind()"" In The Constructor"
+// Wherever we call clearThis() the context will be correct (like render())
+// Run this binding once when the component is first initialized and I don't have to rebind manually in each call (line 83)
+// Doesn't have to rebind every time the component re-renders
+// this.clearList = this.clearList.bind(this)
+// }
+
+// render() {
+//   return (
+//     <div>
+//       {/* <button onClick={this.clearList.bind(this)}>Clear List</button> */}
+//       <button onClick={this.props.parentClearList}>Clear List</button> {/* calling parentClearList now */}
+//       {
+//         this.props.options.map((option => {
+//         return <Option key={option} optionText={option}/>
+//       }))
+
+//       }
+//       {/* <Option /> Child Component */}
+//     </div>
+//   )
+// }
+
+//Event Handler
+// clearList() {
+//   console.log(this.props.options)
+//   //alert('clearList()')
+// }
+// }
+
+
+// Option  - Stateless Function Based  Component
+var Option = function Option(props) {
+  return React.createElement(
+    "div",
+    null,
+    props.optionText,
+    React.createElement(
+      "button",
+      { onClick: function onClick(e) {
+          props.handleDeleteOption(props.optionText);
+        } },
+      "Remove"
+    )
+  );
+};
+
+// Option - Class Based Component
+// class Option extends React.Component {
+//   render() {
+//     return (
+//       <div>
+//         Option: {this.props.optionText}
+//       </div>
+//     )
+//   }
+// }
+
+
+var AddOption = function (_React$Component2) {
+  _inherits(AddOption, _React$Component2);
+
+  function AddOption(props) {
+    _classCallCheck(this, AddOption);
+
+    var _this2 = _possibleConstructorReturn(this, (AddOption.__proto__ || Object.getPrototypeOf(AddOption)).call(this, props));
+
+    _this2.handleAddOptions = _this2.handleAddOptions.bind(_this2);
+
+    // no form submitted so error state is undefined by default
+    _this2.state = {
+      error: undefined
+    };
+    return _this2;
+  }
+
+  _createClass(AddOption, [{
+    key: "render",
+    value: function render() {
+      return React.createElement(
+        "div",
+        null,
+        this.state.error && React.createElement(
+          "p",
+          null,
+          this.state.error
+        ),
+        React.createElement(
+          "form",
+          { onSubmit: this.handleAddOptions },
+          React.createElement("input", { type: "text", name: "option" }),
+          React.createElement(
+            "button",
+            null,
+            "Add Option"
+          )
+        )
+      );
     }
 
-    _createClass(Student, [{
-        key: 'hasMajor',
-        value: function hasMajor() {
-            return this.major;
-        }
-    }, {
-        key: 'getDescription',
-        value: function getDescription() {
-            var description = _get(Student.prototype.__proto__ || Object.getPrototypeOf(Student.prototype), 'getDescription', this).call(this); // call superclass getDescription method
+    //Event Handler
 
-            if (this.hasMajor()) {
-                description = description + (' My major is ' + this.major + '!');
-            }
+  }, {
+    key: "handleAddOptions",
+    value: function handleAddOptions(e) {
+      e.preventDefault(); // prevents full screen rendering when form is submitted
+      console.log('Form Submitted!');
 
-            return description;
-        }
-    }]);
+      var option = e.target.elements.option.value.trim(); // trim(): removes all leading and trailing white space
+      var error = this.props.handleAddOptions(option); // call parent handleAddOptions()
+      //console.log(option)
 
-    return Student;
-}(Person);
-
-var Traveler = function (_Person2) {
-    _inherits(Traveler, _Person2);
-
-    function Traveler(name, age, location) {
-        _classCallCheck(this, Traveler);
-
-        var _this2 = _possibleConstructorReturn(this, (Traveler.__proto__ || Object.getPrototypeOf(Traveler)).call(this, name, age));
-
-        _this2.location = location;
-        return _this2;
+      this.setState(function () {
+        return {
+          error: error // render error to the screen
+        };
+      });
     }
+  }]);
 
-    _createClass(Traveler, [{
-        key: 'getGreeting',
-        value: function getGreeting() {
-            var greeting = _get(Traveler.prototype.__proto__ || Object.getPrototypeOf(Traveler.prototype), 'getGreeting', this).call(this);
+  return AddOption;
+}(React.Component);
 
-            if (this.location) {
-                greeting = greeting + (' Im visiting from ' + this.location + '!');
-            }
-            return greeting;
-        }
-    }]);
+// Stateless Functional Components
+// Do not have access to "this"
+// Props are passed in as the first argument
+// Faster than class based components
+// Cannot manage lifecycle for stateless functional components
+// Best used for simple components that focus on presentation and not state
 
-    return Traveler;
-}(Person);
 
-var low = new Person("Low", 29);
-console.log(low.getGreeting());
-console.log(low.getDescription());
+var User = function User(props) {
+  return React.createElement(
+    "div",
+    null,
+    React.createElement(
+      "p",
+      null,
+      "Name: ",
+      props.name
+    ),
+    React.createElement(
+      "p",
+      null,
+      "Age: ",
+      props.age
+    )
+  );
+};
 
-var other = new Person();
-console.log(other.getGreeting());
-console.log(other.getDescription());
+// const jsx = (
+//   <div>
+//     <Header /> {/* Reference Header Class */}
+//     <Action />
+//     <Options />
+//     <AddOption />
+//   </div>
+// )
 
-var lowellWooden = new Student('Lowell Wooden', 29, 'Computer Technology');
-console.log(lowellWooden.getDescription());
+//ReactDOM.render(jsx, document.getElementById('app'))
 
-var home = new Traveler('Lowell', 29, 'Maryland');
-console.log(home.getGreeting());
+//Reference Top Level Component
+ReactDOM.render(React.createElement(IndecisionApp, null), document.getElementById('app'));
